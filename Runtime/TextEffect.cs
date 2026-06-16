@@ -64,11 +64,13 @@ namespace EasyTextEffects
             {
                 return;
             }
-
-            globalEffects.ForEach(_entry =>
+            
+            for (var i = 0; i < globalEffects.Count; i++)
             {
+                var _entry = globalEffects[i];
                 if (_entry.effect == null)
                     return;
+                
                 var effectEntry = new GlobalTextEffectEntry();
                 effectEntry.effect = _entry.effect.Instantiate();
                 effectEntry.effect.startCharIndex = 0;
@@ -79,7 +81,7 @@ namespace EasyTextEffects
                     onStartEffects_.Add(effectEntry);
                 else
                     manualEffects_.Add(effectEntry);
-            });
+            }
         }
 
         private void AddTagEffects(TMP_LinkInfo[] styles, int linkCount)
@@ -105,10 +107,12 @@ namespace EasyTextEffects
 
                 // copy effects
                 var effectTemplates = GetTagEffectsByName(style.GetLinkID());
-                foreach (TextEffectEntry entry in effectTemplates)
+                for (var j = 0; j < effectTemplates.Count; j++)
                 {
+                    var entry = effectTemplates[j];
                     if (entry.effect == null)
                         continue;
+                    
                     // note: make sure onEffectCompleted events get copied 
                     TextEffectEntry entryCopy = entry.GetCopy(
                         style.linkTextfirstCharacterIndex,
@@ -129,6 +133,7 @@ namespace EasyTextEffects
             foreach (var effectName in effectNames)
             {
                 var findAll = allTagEffects_.FindAll(_entry => _entry.effect?.effectTag == effectName);
+                
                 if (findAll.Count >= 1)
                     results.Add(findAll[0]);
 #if UNITY_EDITOR
@@ -232,18 +237,48 @@ namespace EasyTextEffects
                     continue;
 
                 var capturedI = i;
-                onStartEffects_.Where(_entry => !_entry.overrideTagEffects)
-                    .ForEach(_entry => _entry.effect.ApplyEffect(textInfo, capturedI, 0, 3));
-                manualEffects_.Where(_entry => !_entry.overrideTagEffects).ForEach(_entry =>
-                    _entry.effect.ApplyEffect(textInfo, capturedI, 0, 3));
+                
+                for (var j = 0; j < onStartEffects_.Count; j++)
+                {
+                    var _entry = onStartEffects_[j];
+                    if (_entry.overrideTagEffects) continue;
+                    
+                    _entry.effect.ApplyEffect(textInfo, capturedI, 0, 3);
+                }
+                
+                for (var j = 0; j < manualEffects_.Count; j++)
+                {
+                    var _entry = manualEffects_[j];
+                    if (_entry.overrideTagEffects) continue;
+                    
+                    _entry.effect.ApplyEffect(textInfo, capturedI, 0, 3);
+                }
+                
+                for (var j = 0; j < onStartTagEffects_.Count; j++)
+                { 
+                    onStartTagEffects_[j].effect.ApplyEffect(textInfo, capturedI, 0, 3);
+                }
+                
+                for (var j = 0; j < manualTagEffects_.Count; j++)
+                {
+                    manualTagEffects_[j].effect.ApplyEffect(textInfo, capturedI, 0, 3);
+                }
+                
+                for (var j = 0; j < onStartEffects_.Count; j++)
+                {
+                    var _entry = onStartEffects_[j];
+                    if (!_entry.overrideTagEffects) continue;
+                    
+                    _entry.effect.ApplyEffect(textInfo, capturedI, 0, 3);
+                }
+                
+                for (var j = 0; j < manualEffects_.Count; j++)
+                {
+                    var _entry = manualEffects_[j];
+                    if (!_entry.overrideTagEffects) continue;
 
-                onStartTagEffects_.ForEach(_entry => _entry.effect.ApplyEffect(textInfo, capturedI, 0, 3));
-                manualTagEffects_.ForEach(_entry => _entry.effect.ApplyEffect(textInfo, capturedI, 0, 3));
-
-                onStartEffects_.Where(_entry => _entry.overrideTagEffects).ForEach(_entry =>
-                    _entry.effect.ApplyEffect(textInfo, capturedI, 0, 3));
-                manualEffects_.Where(_entry => _entry.overrideTagEffects).ForEach(_entry =>
-                    _entry.effect.ApplyEffect(textInfo, capturedI, 0, 3));
+                    _entry.effect.ApplyEffect(textInfo, capturedI, 0, 3);
+                }
             }
 
             // apply changes and update mesh
@@ -262,53 +297,111 @@ namespace EasyTextEffects
 
         public void StopAllEffects()
         {
-            onStartEffects_.ForEach(_entry => _entry.effect.StopEffect());
-            manualEffects_.ForEach(_entry => _entry.effect.StopEffect());
-            onStartTagEffects_.ForEach(_entry => _entry.effect.StopEffect());
-            manualTagEffects_.ForEach(_entry => _entry.effect.StopEffect());
+            for (var i = 0; i < onStartEffects_.Count; i++)
+            {
+                onStartEffects_[i].effect.StopEffect();
+            }
+            
+            for (var i = 0; i < manualEffects_.Count; i++)
+            {
+                manualEffects_[i].effect.StopEffect();
+            }
+            
+            for (var i = 0; i < onStartTagEffects_.Count; i++)
+            {
+                onStartTagEffects_[i].effect.StopEffect();
+            }
+            
+            for (var i = 0; i < manualTagEffects_.Count; i++)
+            {
+                manualTagEffects_[i].effect.StopEffect();
+            }
         }
 
         public void StartOnStartEffects()
         {
-            onStartEffects_.ForEach(_entry => _entry.StartEffect());
-            onStartTagEffects_.ForEach(_entry => _entry.StartEffect());
+            for (var i = 0; i < onStartEffects_.Count; i++)
+            {
+                onStartEffects_[i].StartEffect();
+            }
+            
+            for (var i = 0; i < onStartTagEffects_.Count; i++)
+            {
+                onStartTagEffects_[i].StartEffect();
+            }
             nextUpdateTime_ = 0; // immediately update
         }
 
         public void StopOnStartEffects()
         {
-            onStartEffects_.ForEach(_entry => _entry.effect.StopEffect());
-            onStartTagEffects_.ForEach(_entry => _entry.effect.StopEffect());
+            for (var i = 0; i < onStartEffects_.Count; i++)
+            {
+                onStartEffects_[i].effect.StopEffect();
+            }
+            
+            for (var i = 0; i < onStartTagEffects_.Count; i++)
+            {
+                onStartTagEffects_[i].effect.StopEffect();
+            }
         }
 
         public void StartManualEffects()
         {
-            manualEffects_.ForEach(_entry => _entry.StartEffect());
+            for (var i = 0; i < manualEffects_.Count; i++)
+            {
+                manualEffects_[i].StartEffect();
+            }
         }
 
         public void StopManualEffects()
         {
-            manualEffects_.ForEach(_entry => _entry.effect.StopEffect());
+            for (var i = 0; i < manualEffects_.Count; i++)
+            {
+                manualEffects_[i].effect.StopEffect();
+            }
         }
 
         public void StartManualTagEffects()
         {
-            manualTagEffects_.ForEach(_entry => _entry.StartEffect());
+            for (var i = 0; i < manualTagEffects_.Count; i++)
+            {
+                manualTagEffects_[i].StartEffect();
+            }
         }
 
         public void StopManualTagEffects()
         {
-            manualTagEffects_.ForEach(_entry => _entry.effect.StopEffect());
+            for (var i = 0; i < manualTagEffects_.Count; i++)
+            {
+                manualTagEffects_[i].effect.StopEffect();
+            }
         }
 
         public GlobalTextEffectEntry FindManualEffect(string _effectName)
         {
-            return manualEffects_.Find(_entry => _entry.effect.effectTag == _effectName);
+            for (var i = 0; i < manualEffects_.Count; i++)
+            {
+                var _entry = manualEffects_[i];
+                if (_entry.effect.effectTag == _effectName) return _entry;
+            }
+
+            return null;
+        }
+
+        public TextEffectEntry FindManualTagEffect(string _effectName)
+        {
+            for (var i = 0; i < manualTagEffects_.Count; i++)
+            {
+                var _entry = manualTagEffects_[i];
+                if (_entry.effect.effectTag == _effectName) return _entry;
+            }
+
+            return null;
         }
 
         public void StartManualEffect(string _effectName)
         {
-            GlobalTextEffectEntry effectEntry = manualEffects_.Find(_entry => _entry.effect.effectTag == _effectName);
+            GlobalTextEffectEntry effectEntry = FindManualEffect(_effectName);
             if (effectEntry != null)
             {
                 effectEntry.StartEffect();
@@ -321,7 +414,7 @@ namespace EasyTextEffects
 
         public void StartManualTagEffect(string _effectName)
         {
-            TextEffectEntry effectEntry = manualTagEffects_.Find(_entry => _entry.effect.effectTag == _effectName);
+            TextEffectEntry effectEntry = FindManualTagEffect(_effectName);
             if (effectEntry != null)
             {
                 effectEntry.StartEffect();
